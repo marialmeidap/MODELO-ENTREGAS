@@ -47,14 +47,14 @@ if ciudad_usuario:
         fila = df[df['ciudad'].str.lower().apply(unidecode) == mejor_coincidencia].iloc[0]
 
         # ✅ Calcular tasa de devolución en tiempo real
-        devoluciones = fila['devoluciones']
-        entregas = fila['entregas']
-        if entregas == 0:
+        try:
+            entregas = float(fila['entregas'])
+            devoluciones = float(fila['devoluciones'])
+            tasa_dev = devoluciones / entregas if entregas > 0 else 0
+        except:
             tasa_dev = 0
-        else:
-            tasa_dev = devoluciones / entregas
 
-        # ✅ Preparamos la entrada del modelo
+        # ✅ Crear input para el modelo con columnas exactas
         input_modelo = pd.DataFrame([{
             '% pm': fila['% pm'],
             'oficina': fila['oficina'],
@@ -63,11 +63,14 @@ if ciudad_usuario:
             'tasa_devolucion': tasa_dev
         }])
 
+        # ✅ Reordenar columnas para que coincidan con el entrenamiento
+        input_modelo = input_modelo[['% pm', 'oficina', 'dirección', 'hechos violentos', 'tasa_devolucion']]
+
         # ✅ Predicción
         pred = modelo.predict(input_modelo)[0]
         st.write(f"📈 Predicción del modelo: `{pred:.4f}`")
 
-        # ✅ Interpretación de resultados
+        # ✅ Interpretación
         if pred >= 0.5:
             st.success("✅ Puedes hacer la entrega **CONTRAENTREGA** con alta probabilidad de éxito.")
         else:
