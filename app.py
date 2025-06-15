@@ -60,9 +60,9 @@ if ciudad_usuario:
         # Preparamos la entrada del modelo
         input_modelo = pd.DataFrame([{
             'oficina': fila['oficina'],
-            'direccion': fila['direccion'],
+            'dirección': fila['direccion'],
             'hechos_violentos': fila['hechos_violentos'],
-            '%_pm': fila['%_pm'],
+            '% pm': fila['%_pm'],
             'tasa_devolucion': tasa_dev
         }])
 
