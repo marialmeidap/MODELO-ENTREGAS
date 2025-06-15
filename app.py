@@ -6,7 +6,8 @@ from fuzzywuzzy import process
 
 # Cargar modelo y datos
 modelo = joblib.load("modelo_entrenado.pkl")
-df = pd.read_csv("data_ciudades.csv", encoding='latin1', sep=",", engine='python', error_bad_lines=False)
+df = pd.read_csv("data_ciudades.csv", encoding='latin1', sep=",", engine='python', on_bad_lines='skip')
+
 
 
 # Título
