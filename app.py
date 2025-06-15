@@ -52,7 +52,7 @@ if ciudad_usuario:
 
         # ✅ Crear input del modelo en orden exacto y con mismos nombres
         input_modelo = pd.DataFrame([{
-            '% pm': float(fila['% pm']),
+            '% pm': pd.to_numeric(fila['% pm'], errors='coerce') or 0,
             'oficina': int(fila['oficina']),
             'dirección': int(fila['dirección']),
             'hechos violentos': int(fila['hechos violentos']),
