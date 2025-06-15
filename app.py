@@ -52,11 +52,11 @@ if ciudad_usuario:
 
         # ✅ Crear input del modelo en orden exacto y con mismos nombres
         input_modelo = pd.DataFrame([{
-            '% pm': pd.to_numeric(fila['% pm'], errors='coerce') or 0,
-            'oficina': int(fila['oficina']),
-            'dirección': int(fila['dirección']),
-            'hechos violentos': int(fila['hechos violentos']),
-            'tasa_devolucion': tasa_dev
+            '% pm': pd.to_numeric(fila['% pm'], errors='coerce') if pd.notnull(fila['% pm']) else 0,
+            'oficina': fila['oficina'] if pd.notnull(fila['oficina']) else 0,
+            'dirección': fila['dirección'] if pd.notnull(fila['dirección']) else 0,
+            'hechos violentos': fila['hechos violentos'] if pd.notnull(fila['hechos violentos']) else 0,
+            'tasa_devolucion': tasa_dev if pd.notnull(tasa_dev) else 0
         }])
 
         # ✅ Aseguramos el mismo orden que en el entrenamiento
