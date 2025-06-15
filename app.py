@@ -7,7 +7,7 @@ from fuzzywuzzy import process
 
 # Cargar modelo y datos
 modelo = joblib.load("modelo_entrenado.pkl")
-df = pd.read_csv("datos_ciudades.csv")  # Asegúrate que este archivo esté en el mismo directorio
+df = pd.read_csv("data_ciudades.csv")  # Asegúrate que este archivo esté en el mismo directorio
 
 # Título
 st.title("📦 Recomendador de Método de Entrega")
