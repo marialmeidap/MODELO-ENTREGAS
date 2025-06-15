@@ -9,6 +9,7 @@ from fuzzywuzzy import process
 # ====================================
 modelo = joblib.load("modelo_entrenado.pkl")
 df = pd.read_csv("data_ciudades.csv", encoding='latin1', sep=";", engine='python', on_bad_lines='skip')
+df.columns = df.columns.str.strip()
 
 # ✅ Renombrar columnas para que coincidan con el modelo entrenado
 df = df.rename(columns={
