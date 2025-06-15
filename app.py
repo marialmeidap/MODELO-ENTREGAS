@@ -9,10 +9,10 @@ from fuzzywuzzy import process
 # ========================
 modelo = joblib.load("modelo_entrenado.pkl")
 
-# Leer CSV con manejo de errores y codificación
-df = pd.read_csv("data_ciudades.csv", encoding='latin1', sep=",", engine='python', on_bad_lines='skip')
+# Leer CSV con separador correcto y codificación apropiada
+df = pd.read_csv("data_ciudades.csv", encoding='latin1', sep=';', engine='python', on_bad_lines='skip')
 
-# Normalizar nombres de columnas para evitar errores
+# Normalizar nombres de columnas
 df.columns = (
     df.columns
     .str.strip()
@@ -25,8 +25,8 @@ df.columns = (
     .str.replace("ú", "u")
 )
 
-# Mostrar nombres de columnas (debug)
-st.write("🧾 Columnas disponibles:", df.columns.tolist())
+# Mostrar columnas para confirmar
+# st.write("🧾 Columnas disponibles:", df.columns.tolist())
 
 # ========================
 # Interfaz
@@ -52,19 +52,16 @@ if ciudad_usuario:
 
         fila = df[df['ciudad'].str.lower().apply(unidecode) == mejor_coincidencia].iloc[0]
 
-        # Crear el input exacto que espera el modelo
+        # Preparar el input con los nombres exactos del modelo
         input_modelo = pd.DataFrame([{
             'oficina': fila['oficina'],
-            'direccion': fila['direccion'],  # Reemplazo si ya fue limpiado
+            'direccion': fila['direccion'],
             'hechos_violentos': fila['hechos_violentos'],
-            'pm': fila['pm'],  # columna '% pm' normalizada a 'pm'
+            '%_pm': fila['%_pm'],
             'tasa_devolucion': fila['tasa_devolucion']
         }])
 
-        # Si las columnas originales se llaman distinto, ajusta aquí:
-        # st.write(input_modelo.columns)
-
-        # ✅ Predicción
+        # Predicción
         pred = modelo.predict(input_modelo)[0]
         st.write(f"📈 Predicción del modelo: `{pred:.4f}`")
 
