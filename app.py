@@ -4,17 +4,39 @@ import joblib
 from unidecode import unidecode
 from fuzzywuzzy import process
 
+# ========================
 # Cargar modelo y datos
+# ========================
 modelo = joblib.load("modelo_entrenado.pkl")
+
+# Leer CSV con manejo de errores y codificación
 df = pd.read_csv("data_ciudades.csv", encoding='latin1', sep=",", engine='python', on_bad_lines='skip')
 
+# Normalizar nombres de columnas para evitar errores
+df.columns = (
+    df.columns
+    .str.strip()
+    .str.lower()
+    .str.replace(" ", "_")
+    .str.replace("á", "a")
+    .str.replace("é", "e")
+    .str.replace("í", "i")
+    .str.replace("ó", "o")
+    .str.replace("ú", "u")
+)
 
+# Mostrar nombres de columnas (debug)
+st.write("🧾 Columnas disponibles:", df.columns.tolist())
 
-# Título
+# ========================
+# Interfaz
+# ========================
 st.title("📦 Recomendador de Método de Entrega")
 st.markdown("Descubre si deberías enviar **contraentrega** o con **pago anticipado**, según la ciudad destino.")
 
+# ========================
 # Input del usuario
+# ========================
 ciudad_usuario = st.text_input("🔎 Ingresa el nombre de la ciudad destino:")
 
 if ciudad_usuario:
@@ -30,16 +52,19 @@ if ciudad_usuario:
 
         fila = df[df['ciudad'].str.lower().apply(unidecode) == mejor_coincidencia].iloc[0]
 
-        # Preparamos la entrada del modelo
+        # Crear el input exacto que espera el modelo
         input_modelo = pd.DataFrame([{
             'oficina': fila['oficina'],
-            'dirección': fila['dirección'],
-            'hechos violentos': fila['hechos violentos'],
-            '% pm': fila['% pm'],
+            'direccion': fila['direccion'],  # Reemplazo si ya fue limpiado
+            'hechos_violentos': fila['hechos_violentos'],
+            'pm': fila['pm'],  # columna '% pm' normalizada a 'pm'
             'tasa_devolucion': fila['tasa_devolucion']
         }])
 
-        # Predicción
+        # Si las columnas originales se llaman distinto, ajusta aquí:
+        # st.write(input_modelo.columns)
+
+        # ✅ Predicción
         pred = modelo.predict(input_modelo)[0]
         st.write(f"📈 Predicción del modelo: `{pred:.4f}`")
 
