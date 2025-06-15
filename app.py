@@ -4,39 +4,32 @@ import joblib
 from unidecode import unidecode
 from fuzzywuzzy import process
 
-# ==========================
-# 📁 Cargar modelo y datos
-# ==========================
+# ====================================
+# 📥 Cargar modelo y datos
+# ====================================
 modelo = joblib.load("modelo_entrenado.pkl")
+df = pd.read_csv("data_ciudades.csv", encoding='latin1', sep=",", engine='python', on_bad_lines='skip')
 
-# Cargar CSV con limpieza
-df = pd.read_csv("data_ciudades.csv", encoding='latin1', sep=";", engine='python', on_bad_lines='skip')
+# ✅ Renombrar columnas para que coincidan con el modelo entrenado
+df = df.rename(columns={
+    '%_pm': '% pm',
+    'direccion': 'dirección',
+    'hechos_violentos': 'hechos violentos'
+})
 
-# Normalizar nombres de columnas
-df.columns = (
-    df.columns
-    .str.strip()
-    .str.lower()
-    .str.replace(" ", "_")
-    .str.replace("á", "a")
-    .str.replace("é", "e")
-    .str.replace("í", "i")
-    .str.replace("ó", "o")
-    .str.replace("ú", "u")
-)
+# ====================================
+# 🧾 Diagnóstico de columnas
+# ====================================
+st.sidebar.markdown("🧾 Columnas encontradas en el archivo:")
+st.sidebar.write(df.columns.tolist())
 
-# Mostrar columnas para verificación
-st.write("🧾 Columnas encontradas en el archivo:")
-st.write(df.columns.tolist())
-
-# ================================
-# 🧠 Interfaz para predicción
-# ================================
-
+# ====================================
+# 🧠 App principal
+# ====================================
 st.title("📦 Recomendador de Método de Entrega")
 st.markdown("Descubre si deberías enviar **contraentrega** o con **pago anticipado**, según la ciudad destino.")
 
-# Input del usuario
+# 🔎 Input del usuario
 ciudad_usuario = st.text_input("🔎 Ingresa el nombre de la ciudad destino:")
 
 if ciudad_usuario:
@@ -52,24 +45,28 @@ if ciudad_usuario:
 
         fila = df[df['ciudad'].str.lower().apply(unidecode) == mejor_coincidencia].iloc[0]
 
-        # Calcular tasa de devolución si no está incluida
-        entregas = fila['entregas']
+        # ✅ Calcular tasa de devolución en tiempo real
         devoluciones = fila['devoluciones']
-        tasa_dev = devoluciones / (entregas + 1)  # evita división por cero
+        entregas = fila['entregas']
+        if entregas == 0:
+            tasa_dev = 0
+        else:
+            tasa_dev = devoluciones / entregas
 
-        # Preparamos la entrada del modelo
+        # ✅ Preparamos la entrada del modelo
         input_modelo = pd.DataFrame([{
-            '% pm': fila['%_pm'],
+            '% pm': fila['% pm'],
             'oficina': fila['oficina'],
-            'dirección': fila['direccion'],
-            'hechos_violentos': fila['hechos_violentos'],
+            'dirección': fila['dirección'],
+            'hechos violentos': fila['hechos violentos'],
             'tasa_devolucion': tasa_dev
         }])
 
-        # Predicción
+        # ✅ Predicción
         pred = modelo.predict(input_modelo)[0]
         st.write(f"📈 Predicción del modelo: `{pred:.4f}`")
 
+        # ✅ Interpretación de resultados
         if pred >= 0.5:
             st.success("✅ Puedes hacer la entrega **CONTRAENTREGA** con alta probabilidad de éxito.")
         else:
