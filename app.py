@@ -51,26 +51,35 @@ if ciudad_usuario:
         tasa_dev = devoluciones / entregas
 
         # ✅ Crear input del modelo en orden exacto y con mismos nombres
-        input_modelo = pd.DataFrame([{
-            '% pm': pd.to_numeric(fila['% pm'], errors='coerce') if pd.notnull(fila['% pm']) else 0,
-            'oficina': fila['oficina'] if pd.notnull(fila['oficina']) else 0,
-            'dirección': fila['dirección'] if pd.notnull(fila['dirección']) else 0,
-            'hechos violentos': fila['hechos violentos'] if pd.notnull(fila['hechos violentos']) else 0,
-            'tasa_devolucion': tasa_dev if pd.notnull(tasa_dev) else 0
-        }])
+try:
+    # ⚙️ Verificamos valores y reemplazamos NaN si es necesario
+    oficina = fila['oficina'] if pd.notnull(fila['oficina']) else 0
+    direccion = fila['dirección'] if pd.notnull(fila['dirección']) else 0
+    hechos_violentos = fila['hechos violentos'] if pd.notnull(fila['hechos violentos']) else 0
+    pm = pd.to_numeric(fila['% pm'], errors='coerce')
+    pm = pm if pd.notnull(pm) else 0
+    tasa_dev = tasa_dev if pd.notnull(tasa_dev) else 0
 
-        # ✅ Aseguramos el mismo orden que en el entrenamiento
-        input_modelo = input_modelo[['% pm', 'oficina', 'dirección', 'hechos violentos', 'tasa_devolucion']]
+    # 🧾 Construimos el input del modelo
+    input_modelo = pd.DataFrame([{
+        '% pm': pm,
+        'oficina': oficina,
+        'dirección': direccion,
+        'hechos violentos': hechos_violentos,
+        'tasa_devolucion': tasa_dev
+    }])
 
-        # ✅ Predicción
-        try:
-            pred = modelo.predict(input_modelo)[0]
-            st.write(f"📈 Predicción del modelo: `{pred:.4f}`")
+    # 🔮 Hacemos la predicción
+    pred = modelo.predict(input_modelo)[0]
+    st.write(f"📈 Predicción del modelo: `{pred:.4f}`")
 
-            if pred >= 0.5:
-                st.success("✅ Puedes hacer la entrega **CONTRAENTREGA** con alta probabilidad de éxito.")
-            else:
-                st.error("⚠️ Se recomienda **PAGO ANTICIPADO** para evitar riesgo de devolución.")
-        except Exception as e:
-            st.error("🚨 Error al hacer la predicción. Revisa el formato de entrada.")
-            st.text(str(e))
+    # ✅ Interpretación
+    if pred >= 0.5:
+        st.success("✅ Puedes hacer la entrega **CONTRAENTREGA** con alta probabilidad de éxito.")
+    else:
+        st.error("⚠️ Se recomienda **PAGO ANTICIPADO** para evitar riesgo de devolución.")
+
+except Exception as e:
+    st.error("🚨 Error al hacer la predicción. Revisa el formato de entrada.")
+    st.exception(e)  # Opcional: para mostrar la excepción completa en modo desarrollo
+
